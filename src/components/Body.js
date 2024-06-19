@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
-import RestaurentCard from "./RestaurentCard";
-// import { resList } from "../utils"
-//shimmer UI
+import RestaurantCard from "./RestaurantCard";
+import { Link } from "react-router-dom";
+import useOnlineStatus from "../utils/useOnlineStatus"
 
 const Body = () => {
     const [resListData, setResListData] = useState([]);
@@ -15,7 +15,6 @@ const Body = () => {
         setResListData(filterData)
     };
     const searchAndFilterData = () => {
-        console.log('searchText:--->', searchText);
         const response = resListData.filter((res) => {
             return res.card.card?.info?.name.toLowerCase().includes(searchText.toLowerCase());
         })
@@ -30,10 +29,14 @@ const Body = () => {
     const fetchData = async () => {
         const response = await fetch("https://www.swiggy.com/dapi/restaurants/list/v5?lat=18.61610&lng=73.72860&collection=83639&tags=layout_CCS_Biryani&sortBy=&filters=&type=rcv2&offset=0&page_type=null")
         const jsonSwiggyData = await response.json();
-        console.log("jsonSwiggyData:--->", jsonSwiggyData);
         setResListData(jsonSwiggyData?.data?.cards);
         setFilteredRestaurant(jsonSwiggyData?.data?.cards);
     }
+    const onlineStatus = useOnlineStatus();
+    if (onlineStatus === false)
+        return (
+            <h1> Looks like you are offline !! please check your internet connectction.</h1>
+        )
     return (
         <div className="body">
             <div className="filter">
@@ -48,9 +51,11 @@ const Body = () => {
             </div>
             <div className="res-container">
                 {
-                    filteredRestaurant?.map((item) => (
-                        (item.card.card.info) ?
-                            <RestaurentCard key={item.card.card.info.id} resData={item} /> : null
+                    filteredRestaurant?.map((restaurentInfo) => (
+                        (restaurentInfo.card.card.info) ?
+                            <Link key={restaurentInfo.card.card.info.id} to={"/restaurants/" + restaurentInfo.card.card.info.id} >
+                                <RestaurantCard resData={restaurentInfo} />
+                            </Link> : null
                     ))
                 }
             </div>
